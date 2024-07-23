@@ -1,7 +1,7 @@
 #%%
 import requests
 import json
-import parse_game_data_utils as pgdu
+import parse_game_data.parse_game_data_utils as pgdu
 import time
 
 OUTPUT_FILE_PATH = '/Users/peptid/Local_Documents/mmr_predictor/parsed_games.json'
