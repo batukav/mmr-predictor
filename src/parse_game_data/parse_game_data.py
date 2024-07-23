@@ -3,6 +3,7 @@ import requests
 import json
 import parse_game_data.parse_game_data_utils as pgdu
 import time
+import argparse
 
 OUTPUT_FILE_PATH = '/Users/peptid/Local_Documents/mmr_predictor/parsed_games.json'
 WAIT_TIME = 120
@@ -18,7 +19,7 @@ def parse_game_data(parsed_match_ids):
     duration < 60 * 25 -> don't parse, possibly a stomp
     if any player data['players']{}['randomed'] -> don't parse
     """
-    number_of_parsed_matches = 0
+    
     url = "https://api.opendota.com/api/parsedMatches/"
     # without query value, parsedMatches seem to return the last parsed 100 games
     data = pgdu.make_request_with_retries(url)
@@ -63,8 +64,6 @@ def parse_game_data(parsed_match_ids):
                         json.dump(data, file, indent=4)
 
                     print("Data appended successfully.")
-                    number_of_parsed_matches += 1 
-                    print(f"Number of parsed matches is {number_of_parsed_matches}")
         
         parsed_match_ids = match_ids
     
