@@ -21,7 +21,7 @@ def parse_game_data(parsed_match_ids):
     url = "https://api.opendota.com/api/parsedMatches/"
     # without query value, parsedMatches seem to return the last parsed 100 games
     data = pgdu.make_request_with_retries(url)
-    assert data.response == 200, f'Error getting parsed match data: {data.response}'
+    assert data.status_code == 200, f'Error getting parsed match data: {data.status_code}'
     match_ids = [i['match_id'] for i in data.json()]
     
     intersecting_games = set(match_ids).intersection(set(parsed_match_ids)) 
@@ -31,7 +31,7 @@ def parse_game_data(parsed_match_ids):
         for match_id in match_ids:
             url = f"https://api.opendota.com/api/matches/{match_id}"
             match_data_response = pgdu.make_request_with_retries(url)
-            assert match_data_response.response == 200, f'Error getting match data: {match_data.response}'
+            assert match_data_response.status_code == 200, f'Error getting match data: {match_data.status_code}'
             match_data = match_data_response.json()
             break_loop = False
             if match_data['game_mode'] == 22 and match_data['lobby_type'] == 7 and match_data['region'] == 3 and match_data['duration'] > 60 * 25:
