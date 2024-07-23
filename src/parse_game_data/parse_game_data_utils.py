@@ -2,7 +2,7 @@ import requests
 import json
 import time
 
-def clean_player_data(player_dict):
+def clean_player_data(player_dict: dict) -> dict:
     
     """
     Cleans a player data dictionary by removing specified keys that are deemed unnecessary.
@@ -81,7 +81,7 @@ def clean_player_data(player_dict):
     
     return player_dict
 
-def clean_match_data(match_dict):
+def clean_match_data(match_dict: dict) -> dict:
     
     """
     Cleans a match data dictionary by removing specified keys that are deemed unnecessary.
@@ -134,7 +134,7 @@ def clean_match_data(match_dict):
     
     return match_dict
 
-def get_url(url):
+def get_url(url: str) -> dict:
     
     response = requests.get(url)
     assert response.status_code == 200, f'Failed to retrive data: {response.status_code}'
@@ -142,7 +142,7 @@ def get_url(url):
   
     return data
 
-def make_request_with_retries(url, max_retries=5):
+def make_request_with_retries(url: str, max_retries: int=5) -> requests.Response:
     
     """
     Makes an HTTP GET request to the specified URL, handling 429 Too Many Requests errors
@@ -192,8 +192,5 @@ def make_request_with_retries(url, max_retries=5):
         else:
             return response
 
-            
-        
-
-    # If max retries reached
-    raise Exception(f"Max retries reached. Could not complete the request. Last status code: {response.status_code}")
+        # If max retries reached
+        raise Exception(f"Max retries reached. Could not complete the request. Last status code: {response.status_code}")
