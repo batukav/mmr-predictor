@@ -71,9 +71,7 @@ def clean_player_data(player_dict: dict) -> dict:
     # player_dict = {key: value for key, value in player_dict.items() if key not in keys_to_be_removed}
     new_player_dict = {}
     for key, value in player_dict.items():
-        if key in keys_to_be_removed:
-            print(f"Removed key: {key}")
-        else:
+        if key not in keys_to_be_removed:
             new_player_dict[key] = value
 
     # Update the original dictionary with the new one
@@ -124,9 +122,7 @@ def clean_match_data(match_dict: dict) -> dict:
     # match_dict = {key: value for key, value in match_dict.items() if key not in keys_to_be_removed}
     new_match_dict = {}
     for key, value in match_dict.items():
-        if key in keys_to_be_removed:
-            print(f"Removed key: {key}")
-        else:
+        if key not in keys_to_be_removed:
             new_match_dict[key] = value
 
     # Update the original dictionary with the new one
