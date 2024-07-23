@@ -1,11 +1,9 @@
-#%%
-import requests
 import json
-import parse_game_data.parse_game_data_utils as pgdu
+import parse_game_data_utils as pgdu
 import time
 import argparse
+import os
 
-OUTPUT_FILE_PATH = '/Users/peptid/Local_Documents/mmr_predictor/parsed_games.json'
 WAIT_TIME = 120
 
 def parse_game_data(parsed_match_ids):
@@ -24,7 +22,7 @@ def parse_game_data(parsed_match_ids):
     # without query value, parsedMatches seem to return the last parsed 100 games
     data = pgdu.make_request_with_retries(url)
     assert data.response == 200, f'Error getting parsed match data: {data.response}'
-    match_ids = [i['match_id'] for i in data]
+    match_ids = [i['match_id'] for i in data.json()]
     
     intersecting_games = set(match_ids).intersection(set(parsed_match_ids)) 
     
@@ -32,8 +30,9 @@ def parse_game_data(parsed_match_ids):
         print('a new set of match_ids is found. Parsing them')
         for match_id in match_ids:
             url = f"https://api.opendota.com/api/matches/{match_id}"
-            match_data = pgdu.make_request_with_retries(url)
-            assert match_data.response == 200, f'Error getting match data: {match_data.response}'
+            match_data_response = pgdu.make_request_with_retries(url)
+            assert match_data_response.response == 200, f'Error getting match data: {match_data.response}'
+            match_data = match_data_response.json()
             break_loop = False
             if match_data['game_mode'] == 22 and match_data['lobby_type'] == 7 and match_data['region'] == 3 and match_data['duration'] > 60 * 25:
                 match_data = pgdu.clean_match_data(match_data)
@@ -46,24 +45,14 @@ def parse_game_data(parsed_match_ids):
                     for id, player in enumerate(match_data['players']):
                         match_data['players'][id] = pgdu.clean_player_data(player)
     
-                    # Read the existing data from the JSON file
+                    match_id = match_data['match_id']
+                    output_file = os.path.join(output_dir, f'{match_id}.json')
                     try:
-                        with open(OUTPUT_FILE_PATH, 'r') as file:
-                            data = json.load(file)
-                    except FileNotFoundError:
-                        data = []
-
-                    # Append the new dictionary to the existing data
-                    if isinstance(data, list):
-                        data.append(match_data)
-                    elif isinstance(data, dict):
-                        data.update(match_data)
-
-                    # Write the updated data back to the JSON file
-                    with open(OUTPUT_FILE_PATH, 'w') as file:
-                        json.dump(data, file, indent=4)
-
-                    print("Data appended successfully.")
+                        with open(output_file, 'w') as file:
+                            print(f'Saving match data to {output_file}')
+                            json.dump(match_data, file)
+                    except Exception as e:
+                        raise Exception(f'Some exception occurred while saving the match data: {e}')
         
         parsed_match_ids = match_ids
     
@@ -71,17 +60,13 @@ def parse_game_data(parsed_match_ids):
                         
 if __name__  == '__main__':
     
-    parsed_match_ids = []
-    try:
-        with open(OUTPUT_FILE_PATH, 'r') as file:
-            processed_match_data = json.load(file)
-            for i in processed_match_data:
-                parsed_match_ids.append(i['match_id'])         
-    except FileNotFoundError:
-        print('Seems like a fresh run, setting the parsed_match_ids to empty')
-        pass
+    parser = argparse.ArgumentParser(description="Parsing arguments to fetch, process, and save game data")
+    parser.add_argument('--output_dir', type = str, required=True, help= "Path to the output root directory. Each game data will be saved to this directory separately as {match_id}.json")
+    args = parser.parse_args()
+    output_dir = args.output_dir
     
-    print(f'Total number of parsed games is {len(parsed_match_ids)}')
+    parsed_match_ids = []
+
     while True:
         new_parsed_match_ids = parse_game_data(parsed_match_ids)
         if new_parsed_match_ids == parsed_match_ids:
