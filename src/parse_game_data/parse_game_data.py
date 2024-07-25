@@ -1,12 +1,27 @@
 import json
 import parse_game_data_utils as pgdu
-import time
-import argparse
 import os
 
-WAIT_TIME = 120
+import logging
+logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO, format='%(asctime)s %(filename)s [%(levelname)s]: %(message)s', datefmt='%H:%M')
 
-def parse_game_data(parsed_match_ids):
+class RequestCoundHandler:
+    total_requests = 0
+
+def get_latest_match_ids(limit: int = 2000) ->list[int]:
+    url = "https://api.opendota.com/api/explorer?sql="
+    sql = f"SELECT match_id FROM matches ORDER BY match_id DESC LIMIT {limit} ;"
+    
+    res = json.loads(pgdu.make_request_with_retries(url + sql).text)
+    
+    match_ids = [row["match_id"] for row in res["rows"]]
+    
+    logger.info(f"Successfully requested {len(match_ids)} latest match_ids")
+    
+    return match_ids
+
+def parse_game_data(parsed_match_ids: list[int], output_dir: str) -> None:
     
     """
     Following are used to limit the games:
@@ -56,22 +71,10 @@ def parse_game_data(parsed_match_ids):
         
         parsed_match_ids = match_ids
     
-    return parsed_match_ids        
-                        
-if __name__  == '__main__':
-    
-    parser = argparse.ArgumentParser(description="Parsing arguments to fetch, process, and save game data")
-    parser.add_argument('--output_dir', type = str, required=True, help= "Path to the output root directory. Each game data will be saved to this directory separately as {match_id}.json")
-    args = parser.parse_args()
-    output_dir = args.output_dir
-    
-    parsed_match_ids = []
+    return parsed_match_ids   
 
-    while True:
-        new_parsed_match_ids = parse_game_data(parsed_match_ids)
-        if new_parsed_match_ids == parsed_match_ids:
-            print('Some game ids are overlapping. Waiting for new games to be parsed')
-            time.sleep(WAIT_TIME)
+if __name__  == '__main__':
+    get_latest_match_ids()     
         
     
                      
