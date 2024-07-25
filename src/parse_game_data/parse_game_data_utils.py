@@ -188,5 +188,5 @@ def make_request_with_retries(url: str, max_retries: int=5) -> requests.Response
         else:
             return response
 
-        # If max retries reached
-        raise Exception(f"Max retries reached. Could not complete the request. Last status code: {response.status_code}")
+    # If max retries reached
+    raise Exception(f"Max retries reached. Could not complete the request. Last status code: {response.status_code}")
