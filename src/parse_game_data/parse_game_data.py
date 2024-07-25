@@ -31,7 +31,7 @@ def parse_game_data(parsed_match_ids):
         for match_id in match_ids:
             url = f"https://api.opendota.com/api/matches/{match_id}"
             match_data_response = pgdu.make_request_with_retries(url)
-            assert match_data_response.status_code == 200, f'Error getting match data: {match_data.status_code}'
+            assert match_data_response.status_code == 200, f'Error getting match data: {match_data_response.status_code}'
             match_data = match_data_response.json()
             break_loop = False
             if match_data['game_mode'] == 22 and match_data['lobby_type'] == 7 and match_data['region'] == 3 and match_data['duration'] > 60 * 25:
@@ -48,9 +48,9 @@ def parse_game_data(parsed_match_ids):
                     match_id = match_data['match_id']
                     output_file = os.path.join(output_dir, f'{match_id}.json')
                     try:
-                        with open(output_file, 'w') as file:
+                        with open(output_file, 'w', encoding='utf8') as file:
                             print(f'Saving match data to {output_file}')
-                            json.dump(match_data, file)
+                            json.dump(match_data, file, indent=4, sort_keys=True, separators=(',', ': '), ensure_ascii=False)
                     except Exception as e:
                         raise Exception(f'Some exception occurred while saving the match data: {e}')
         
