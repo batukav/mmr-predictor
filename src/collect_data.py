@@ -43,7 +43,8 @@ if __name__  == '__main__':
     parsed_match_ids = [int(fi_name) for fi_name in get_filenames_without_extension(args.output_dir)]
     logger.info(f"Found {len(parsed_match_ids)} existing match dumps")
 
-    latest_matches = parse_game_data.get_latest_match_ids(limit=1000)
+    # latest_matches = parse_game_data.get_latest_match_ids(limit=1000)
+    latest_matches = parse_game_data.get_parsed_matches()
     parse_game_data.parse_and_dump_match_data(match_ids=latest_matches, output_dir=args.output_dir, parsed_match_ids=parsed_match_ids) 
     
     logger.info(f"Done parsing, collected {len(get_filenames_without_extension(args.output_dir))-len(parsed_match_ids)} new matches")

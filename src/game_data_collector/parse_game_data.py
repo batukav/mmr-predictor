@@ -6,10 +6,23 @@ from tqdm import tqdm
 import game_data_collector.parse_game_data_utils as pgdu
 
 logger = logging.getLogger(__name__)
+
+def get_parsed_matches() -> list[int]:
+    url = "https://api.opendota.com/api/parsedMatches/"
+    # without query value, parsedMatches seem to return the last parsed 100 games
+    res = pgdu.make_request_with_retries(url)
+    
+    if res.status_code != 200:
+        raise ValueError(f'Failed to retrieve data: {res.status_code}')
+    
+    match_ids = [i['match_id'] for i in res.json()]
+    logger.info(f"Successfully requested {len(match_ids)} match ids")
+    
+    return match_ids
         
 def get_latest_match_ids(limit: int = 2000) ->list[int]:
     url = "https://api.opendota.com/api/explorer?sql="
-    sql = f"SELECT match_id FROM matches ORDER BY match_id DESC LIMIT {limit} ;"
+    sql = f"SELECT match_id FROM matches ORDER BY match_id DESC LIMIT {limit} ;" # TODO WHERE ...
     
     res = pgdu.make_request_with_retries(url + sql)
     
@@ -18,7 +31,7 @@ def get_latest_match_ids(limit: int = 2000) ->list[int]:
     
     json_body = json.loads(res.text)
     match_ids = [row["match_id"] for row in json_body["rows"]]
-    logger.info(f"Successfully requested {len(match_ids)} latest match_ids")
+    logger.info(f"Successfully requested {len(match_ids)} latest match ids")
     
     return match_ids
 
@@ -60,7 +73,7 @@ def parse_and_dump_match_data(match_ids: list[int], output_dir: str, parsed_matc
             output_file = os.path.join(output_dir, f'{match_id}.json')    
                 
             with open(output_file, 'w', encoding='utf8') as file:
-                print(f'Saving match data to {output_file}')
+                logger.debug(f'Saving match data to {output_file}')
                 json.dump(match_data, file, indent=4, sort_keys=True, separators=(',', ': '), ensure_ascii=False)
                 
         except ValueError as e:
