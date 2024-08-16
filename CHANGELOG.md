@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Introduced basic logging
 - Experimental function `get_latest_match_ids` to get match data from the /explorer endpoint based on Postgres SQL query ([#3](https://github.com/batukav/mmr-predictor/issues/3))
+- CHANGELOG and project versioning
+
 ### Changed
 - Refactored parts of the collection script, split code into functions (the actual data cleaning remains unchanged)
 - Improved the error handling using exceptions
