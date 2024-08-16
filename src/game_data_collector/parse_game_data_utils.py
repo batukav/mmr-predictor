@@ -1,6 +1,9 @@
 import requests
 import json
 import time
+import logging
+
+logger = logging.getLogger(__name__)
 
 def clean_player_data(player_dict: dict) -> dict:
     
@@ -138,7 +141,7 @@ def get_url(url: str) -> dict:
   
     return data
 
-def make_request_with_retries(url: str, max_retries: int=5) -> requests.Response:
+def make_request_with_retries(url: str, max_retries: int=6) -> requests.Response:
     
     """
     Makes an HTTP GET request to the specified URL, handling 429 Too Many Requests errors
@@ -175,10 +178,10 @@ def make_request_with_retries(url: str, max_retries: int=5) -> requests.Response
         if response.status_code == 429:
             if 'Retry-After' in response.headers:
                 wait_time = int(response.headers['Retry-After'])
-                print(f"Received 429 Too Many Requests. Retrying after {wait_time} seconds...")
+                logger.debug(f"Received 429 Too Many Requests. Retrying after {wait_time} seconds...")
             else:
                 wait_time = 2 ** retries  # Fallback to exponential backoff
-                print(f"Received 429 Too Many Requests. Retrying after a fallback wait time of {wait_time} seconds...")            
+                logger.debug(f"Received 429 Too Many Requests. Retrying after a fallback wait time of {wait_time} seconds...")            
             retries += 1
             time.sleep(wait_time)
         elif response.status_code in force_errors:
