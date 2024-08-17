@@ -55,11 +55,22 @@ def get_match_ids_by_query(limit: int = 2000) ->list[int]:
     return match_ids
 
 def get_match_by_id(match_id: int) -> dict:
+    """Gets match data from OpenDota API
+
+    Args:
+        match_id (int): ID of a parsedMatch
+
+    Raises:
+        ConnectionError: When HTTP response is other than 200 OK
+
+    Returns:
+        dict: JSON formatted response object
+    """    
     url = f"https://api.opendota.com/api/matches/{match_id}"
     match_data_response = pgdu.make_request_with_retries(url)
     if not match_data_response.status_code == 200:
         raise ConnectionError(f'Error getting match data: {match_data_response.status_code}')
-    return match_data_response
+    return match_data_response.json()
 
 # TODO das fetchen und parsen von match data splitten, damit man das testen kann
 def validate_clean_match_data(match_data_json: dict) -> dict:
@@ -114,7 +125,7 @@ def parse_and_dump_match_data(match_ids: list[int], output_dir: str, parsed_matc
         try:
             # clean match response data
             match_data_res = get_match_by_id(m_id)
-            match_data = validate_clean_match_data(match_data_res.json())
+            match_data = validate_clean_match_data(match_data_res)
             
             # dump match_data to json file
             match_id = match_data['match_id']
