@@ -1,11 +1,11 @@
 import sys
 import os
 import pytest
-from game_data_collector.parse_game_data import get_match_by_id, validate_clean_match_data
 
 # Add the src directory to the sys.path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../src')))
 
+from game_data_collector.parse_game_data import get_match_by_id, validate_clean_match_data
 
 # Tests
 
