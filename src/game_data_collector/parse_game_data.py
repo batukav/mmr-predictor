@@ -8,6 +8,14 @@ import game_data_collector.parse_game_data_utils as pgdu
 logger = logging.getLogger(__name__)
 
 def get_parsed_matches() -> list[int]:
+    """Get a list of matches fro mthe /parsedMatches endpoint for further processing
+
+    Raises:
+        ValueError: When HTTP Response is other than 200 OK
+
+    Returns:
+        list[int]:List of match ids
+    """    
     url = "https://api.opendota.com/api/parsedMatches/"
     # without query value, parsedMatches seem to return the last parsed 100 games
     res = pgdu.make_request_with_retries(url)
@@ -67,16 +75,16 @@ def fetch_and_parse_match(match_id: int) -> dict:
     url = f"https://api.opendota.com/api/matches/{match_id}"
     match_data_response = pgdu.make_request_with_retries(url)
     assert match_data_response.status_code == 200, f'Error getting match data: {match_data_response.status_code}'
-    match_data = match_data_response.json()
+    match_data_json = match_data_response.json()
 
-    if match_data['game_mode'] == 22 and match_data['lobby_type'] == 7 and match_data['region'] == 3 and match_data['duration'] > 60 * 25:
-        match_data = pgdu.clean_match_data(match_data)
+    # TODO check if required keys are present (cause of occasional exception?)
+    if match_data_json['game_mode'] == 22 and match_data_json['lobby_type'] == 7 and match_data_json['region'] == 3 and match_data_json['duration'] > 60 * 25:
+        match_data = pgdu.clean_match_data(match_data_json)
         if any([(player['leaver_status'] == 1 or player['randomed'] == 1) for player in match_data['players']]):
             raise ValueError("player left or randomed")
 
         for id, player in enumerate(match_data['players']):
             match_data['players'][id] = pgdu.clean_player_data(player)
-
         return match_data
     else: 
         raise ValueError("game mode, lobby_type, region or duration not meeting requirements")
