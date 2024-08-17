@@ -92,7 +92,9 @@ def validate_clean_match_data(match_data_json: dict) -> dict:
         dict: parsed match data as dict
     """    
 
-    # TODO check if required keys are present (cause of occasional exception?)
+    # check if required keys are present (cause of occasional exception?)
+    if not all (key in match_data_json for key in ["game_mode", "lobby_type", "region", "duration"]):
+        raise ValueError("One of the attributes to validate is missing in match data response json")
     
     if match_data_json['game_mode'] == 22 and match_data_json['lobby_type'] == 7 and match_data_json['region'] == 3 and match_data_json['duration'] > 60 * 25:
         match_data = pgdu.clean_match_data(match_data_json)
