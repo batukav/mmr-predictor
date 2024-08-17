@@ -1,0 +1,93 @@
+import json
+import os
+import logging
+from tqdm import tqdm
+
+import game_data_collector.parse_game_data_utils as pgdu
+
+logger = logging.getLogger(__name__)
+
+def get_parsed_matches() -> list[int]:
+    url = "https://api.opendota.com/api/parsedMatches/"
+    # without query value, parsedMatches seem to return the last parsed 100 games
+    res = pgdu.make_request_with_retries(url)
+    
+    if res.status_code != 200:
+        raise ValueError(f'Failed to retrieve data: {res.status_code}')
+    
+    match_ids = [i['match_id'] for i in res.json()]
+    logger.info(f"Successfully requested {len(match_ids)} match ids")
+    
+    return match_ids
+        
+def get_latest_match_ids(limit: int = 2000) ->list[int]:
+    url = "https://api.opendota.com/api/explorer?sql="
+    sql = f"SELECT match_id FROM matches ORDER BY match_id DESC LIMIT {limit} ;" # TODO WHERE ...
+    
+    res = pgdu.make_request_with_retries(url + sql)
+    
+    if res.status_code != 200:
+        raise ValueError(f'Failed to retrieve data: {res.status_code}')
+    
+    json_body = json.loads(res.text)
+    match_ids = [row["match_id"] for row in json_body["rows"]]
+    logger.info(f"Successfully requested {len(match_ids)} latest match ids")
+    
+    return match_ids
+
+def fetch_and_parse_match(match_id: int) -> dict:
+    url = f"https://api.opendota.com/api/matches/{match_id}"
+    match_data_response = pgdu.make_request_with_retries(url)
+    assert match_data_response.status_code == 200, f'Error getting match data: {match_data_response.status_code}'
+    match_data = match_data_response.json()
+
+    if match_data['game_mode'] == 22 and match_data['lobby_type'] == 7 and match_data['region'] == 3 and match_data['duration'] > 60 * 25:
+        match_data = pgdu.clean_match_data(match_data)
+        if any([(player['leaver_status'] == 1 or player['randomed'] == 1) for player in match_data['players']]):
+            raise ValueError("player left or randomed")
+
+        for id, player in enumerate(match_data['players']):
+            match_data['players'][id] = pgdu.clean_player_data(player)
+
+        return match_data
+    else: 
+        raise ValueError("game mode, lobby_type, region or duration not meeting requirements")
+
+def parse_and_dump_match_data(match_ids: list[int], output_dir: str, parsed_match_ids: list[int] = None) -> None:
+    """
+    Following are used to limit the games:
+    game_mode = 22 all_pick
+    lobby_type = 7 ranked
+    region = 3 EUROPE
+    player leaver_status = 1 -> don't parse the game
+    duration < 60 * 25 -> don't parse, possibly a stomp
+    if any player data['players']{}['randomed'] -> don't parse
+    """
+        
+    # skip existing match ids
+    if parsed_match_ids:
+        new_matches = [m for m in match_ids if m not in parsed_match_ids]
+    else:
+        new_matches = match_ids
+        
+    logger.info(f"Now parsing match data for {len(new_matches)} matches (skipping {len(match_ids) - len(new_matches)} existing matches)")
+    
+    for m_id in tqdm(new_matches):
+        try:
+            # clean match response data
+            match_data = fetch_and_parse_match(m_id)
+            
+            # dump match_data to json file
+            match_id = match_data['match_id']
+            output_file = os.path.join(output_dir, f'{match_id}.json')    
+                
+            with open(output_file, 'w', encoding='utf8') as file:
+                logger.debug(f'Saving match data to {output_file}')
+                json.dump(match_data, file, indent=4, sort_keys=True, separators=(',', ': '), ensure_ascii=False)
+                
+        except ValueError as e:
+            logger.debug(f"Parsing error in match id {m_id}: {e}")
+            continue
+        except Exception as e:
+            logger.error(f"Exception while parsing match id {m_id}: {e}")
+            continue
