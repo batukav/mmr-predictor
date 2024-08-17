@@ -7,7 +7,7 @@ import game_data_collector.parse_game_data_utils as pgdu
 
 logger = logging.getLogger(__name__)
 
-def get_parsed_matches() -> list[int]:
+def get_parsed_match_ids() -> list[int]:
     """Get a list of matches fro mthe /parsedMatches endpoint for further processing
 
     Raises:
@@ -28,7 +28,7 @@ def get_parsed_matches() -> list[int]:
     
     return match_ids
         
-def get_latest_match_ids(limit: int = 2000) ->list[int]:
+def get_match_ids_by_query(limit: int = 2000) ->list[int]:
     """Get custom match IDs from the /explorer endpoint
 
     Args:
@@ -54,8 +54,16 @@ def get_latest_match_ids(limit: int = 2000) ->list[int]:
     
     return match_ids
 
-def fetch_and_parse_match(match_id: int) -> dict:
-    """Fetch, validate and parse match data from the /matches endpoints.
+def get_match_by_id(match_id: int) -> dict:
+    url = f"https://api.opendota.com/api/matches/{match_id}"
+    match_data_response = pgdu.make_request_with_retries(url)
+    if not match_data_response.status_code == 200:
+        raise ConnectionError(f'Error getting match data: {match_data_response.status_code}')
+    return match_data_response
+
+# TODO das fetchen und parsen von match data splitten, damit man das testen kann
+def validate_clean_match_data(match_data_json: dict) -> dict:
+    """validate and clean match data from the OpenDota API /parsedMatches endpoint.
 
     Args:
         match_id (int): Match id
@@ -72,12 +80,9 @@ def fetch_and_parse_match(match_id: int) -> dict:
     Returns:
         dict: parsed match data as dict
     """    
-    url = f"https://api.opendota.com/api/matches/{match_id}"
-    match_data_response = pgdu.make_request_with_retries(url)
-    assert match_data_response.status_code == 200, f'Error getting match data: {match_data_response.status_code}'
-    match_data_json = match_data_response.json()
 
     # TODO check if required keys are present (cause of occasional exception?)
+    
     if match_data_json['game_mode'] == 22 and match_data_json['lobby_type'] == 7 and match_data_json['region'] == 3 and match_data_json['duration'] > 60 * 25:
         match_data = pgdu.clean_match_data(match_data_json)
         if any([(player['leaver_status'] == 1 or player['randomed'] == 1) for player in match_data['players']]):
@@ -108,7 +113,8 @@ def parse_and_dump_match_data(match_ids: list[int], output_dir: str, parsed_matc
     for m_id in tqdm(new_matches):
         try:
             # clean match response data
-            match_data = fetch_and_parse_match(m_id)
+            match_data_res = get_match_by_id(m_id)
+            match_data = validate_clean_match_data(match_data_res.json())
             
             # dump match_data to json file
             match_id = match_data['match_id']

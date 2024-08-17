@@ -59,7 +59,7 @@ if __name__  == '__main__':
         # latest_matches = parse_game_data.get_latest_match_ids(limit=1000)
         
         try:
-            latest_matches = parse_game_data.get_parsed_matches()
+            latest_matches = parse_game_data.get_parsed_match_ids()
         except ValueError as e:
             logger.error(f"Failed to fetch latest parsedMatches: {e}")
             quit()
