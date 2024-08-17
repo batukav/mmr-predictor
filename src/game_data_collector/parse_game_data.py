@@ -21,6 +21,17 @@ def get_parsed_matches() -> list[int]:
     return match_ids
         
 def get_latest_match_ids(limit: int = 2000) ->list[int]:
+    """Get custom match IDs from the /explorer endpoint
+
+    Args:
+        limit (int, optional): Amount of ids to query. Defaults to 2000.
+
+    Raises:
+        ValueError: When HTTP Response is other than 200 OK
+
+    Returns:
+        list[int]: Returns match IDs which match the Postgres query
+    """    
     url = "https://api.opendota.com/api/explorer?sql="
     sql = f"SELECT match_id FROM matches ORDER BY match_id DESC LIMIT {limit} ;" # TODO WHERE ...
     
@@ -36,6 +47,23 @@ def get_latest_match_ids(limit: int = 2000) ->list[int]:
     return match_ids
 
 def fetch_and_parse_match(match_id: int) -> dict:
+    """Fetch, validate and parse match data from the /matches endpoints.
+
+    Args:
+        match_id (int): Match id
+
+    Raises:
+        ValueError: match does not meet the following criteria:
+                    - game_mode = 22 all_pick
+                    - lobby_type = 7 ranked
+                    - region = 3 EUROPE
+                    - player leaver_status = 1 -> don't parse the game
+                    - duration < 60 * 25 -> don't parse, possibly a stomp
+                    - if any player data['players']{}['randomed'] -> don't parse
+
+    Returns:
+        dict: parsed match data as dict
+    """    
     url = f"https://api.opendota.com/api/matches/{match_id}"
     match_data_response = pgdu.make_request_with_retries(url)
     assert match_data_response.status_code == 200, f'Error getting match data: {match_data_response.status_code}'
@@ -54,16 +82,13 @@ def fetch_and_parse_match(match_id: int) -> dict:
         raise ValueError("game mode, lobby_type, region or duration not meeting requirements")
 
 def parse_and_dump_match_data(match_ids: list[int], output_dir: str, parsed_match_ids: list[int] = None) -> None:
-    """
-    Following are used to limit the games:
-    game_mode = 22 all_pick
-    lobby_type = 7 ranked
-    region = 3 EUROPE
-    player leaver_status = 1 -> don't parse the game
-    duration < 60 * 25 -> don't parse, possibly a stomp
-    if any player data['players']{}['randomed'] -> don't parse
-    """
-        
+    """GET, parse and save all matches from lsit of IDs to a given output directory.
+
+    Args:
+        match_ids (list[int]): Pre-queried match ids
+        output_dir (str): Directory to save the JSONs to
+        parsed_match_ids (list[int], optional): List of already existing match IDs which will be skipped when parsing. Defaults to None.
+    """        
     # skip existing match ids
     if parsed_match_ids:
         new_matches = [m for m in match_ids if m not in parsed_match_ids]
