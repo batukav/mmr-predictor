@@ -17,6 +17,11 @@ which will call the API every 15 minutes, due to connection restrictions.
 ### Updates
 For the latest changes, see CHANGELOG.md
 
+### Setup
+This project requires Python 3.11+ as well as packages which you can find in `requirements.txt`. You can install them using PIP
+
+`pip install -r requirements.txt`
+
 ### Software testing
 Test-driven development is encouraged. To run the pytest based unit tests, make sure you have `pytest` installed, then run
 
