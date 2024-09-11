@@ -107,7 +107,7 @@ def validate_clean_match_data(match_data_json: dict) -> dict:
     else: 
         raise ValueError("game mode, lobby_type, region or duration not meeting requirements")
 
-def parse_and_dump_match_data(match_ids: list[int], output_dir: str, parsed_match_ids: list[int] = None) -> None:
+def parse_and_dump_match_data(match_ids: list[int], output_dir: str, parsed_match_ids: list[int] = None, silent: bool = False) -> None:
     """GET, parse and save all matches from lsit of IDs to a given output directory.
 
     Args:
@@ -123,7 +123,7 @@ def parse_and_dump_match_data(match_ids: list[int], output_dir: str, parsed_matc
         
     logger.info(f"Now parsing match data for {len(new_matches)} matches (skipping {len(match_ids) - len(new_matches)} existing matches)")
     
-    for m_id in tqdm(new_matches):
+    for m_id in tqdm(iterable=new_matches, disable=silent):
         try:
             # clean match response data
             match_data_res = get_match_by_id(m_id)
