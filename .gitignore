@@ -166,3 +166,9 @@ cython_debug/
 
 # api data dumps
 resources/data/
+
+# Project dev
+test.py
+test.ipynb
+dev.py
+dev.ipynb
