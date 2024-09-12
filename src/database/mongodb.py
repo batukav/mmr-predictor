@@ -7,39 +7,42 @@ JsonObject = Dict[str, Any]
 
 
 class MongoDB(database):
-    
-    def __init__(self, host = 'localhost', port = 27017, user = None, password = None):
-        
+
+    def __init__(self, host="localhost", port=27017, username=None, password=None):
+
         self.host = host
         self.port = port
-        self.user = user
+        self.username = username
         self.password = password
-        
-    def connect_db(self):
-        
-        method_name = self.my_method.__name__
+
+    def connect_db(self) -> MongoClient:
+
         try:
-            client = MongoClient(self.host, self.password)
+            client = MongoClient(
+                host=self.host,
+                port=self.port,
+                username=self.username,
+                password=self.password,
+            )
         except Exception as e:
             raise RuntimeError(f"Some error occurred in connect_db: {e}")
 
         self.client = client
-        
+
         return client
-    
-    def get_database(self, database_name = None):
-        
-        method_name = self.my_method.__name__
+
+    def get_database(self, database_name: str = None):
+
         try:
-            db = self.client[databasename]
+            db = self.client[database_name]
             self.db = db
         except Exception as e:
             raise RuntimeError(f"Some error occurred in get_database: {e}")
 
         return db
-    
-    def get_collection(self, collection_name:str = None) -> TypedDict:
-        
+
+    def get_collection(self, collection_name: str = None) -> TypedDict:
+
         try:
             collection = self.db[collection_name]
         except Exception as e:
