@@ -7,9 +7,6 @@ from typing import Dict, Any, TypedDict
 
 JsonObject = Dict[str, Any]
 
-def print_generic_exception(method_name:str, exception:str)->str :
-    message = f"Some error occurred in {method_name}:{exception}"
-    return message
 
 class MongoDB(database):
     
