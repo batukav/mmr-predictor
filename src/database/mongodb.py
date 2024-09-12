@@ -80,11 +80,15 @@ class MongoDB(database):
             raise RuntimeError(f"Some error occurred in get_item: {e}")
 
         return item
-        
-        
-        
-        
-        
-        
-        
-        
+
+    def get_all_items(self) -> pymongo.cursor.Cursor:
+
+        collection = self.get_collection(self.collection_name)
+
+        try:
+            all_items = collection.find()
+        except Exception as e:
+            raise RuntimeError(f"Some error occurred in get_all_items: {e}")
+
+        self.all_items = all_items
+        return all_items
