@@ -1,9 +1,7 @@
 import pymongo
 from database import database
 from pymongo import MongoClient
-from typing import Dict, Any, TypedDict
-
-# to-do :  _DocumentType typehint ??
+from typing import Dict, Any, TypedDict, List, Union
 
 JsonObject = Dict[str, Any]
 
