@@ -21,8 +21,8 @@ class MongoDB(database):
         try:
             client = MongoClient(self.host, self.password)
         except Exception as e:
-            raise RuntimeWarning(print_generic_exception(method_name, e))
-        
+            raise RuntimeError(f"Some error occurred in connect_db: {e}")
+
         self.client = client
         
         return client
@@ -34,7 +34,7 @@ class MongoDB(database):
             db = self.client[databasename]
             self.db = db
         except Exception as e:
-            raise RuntimeWarning(print_generic_exception(method_name, e))
+            raise RuntimeError(f"Some error occurred in get_database: {e}")
 
         return db
     
@@ -43,30 +43,42 @@ class MongoDB(database):
         try:
             collection = self.db[collection_name]
         except Exception as e:
-            raise RuntimeWarning(print_generic_exception(method_name, e))
-        
+            raise RuntimeError(f"Some error occurred in get_collection: {e}")
+
+        self.collection_name = collection_name
+
         return collection
-    
-    def insert_item(self, collection_name:str, item:JsonObject) -> any:
-        
-        collection = get_collection(collection_name)
-        
-        try:
-            insert_id = collection.insert_one(item).inserted_id
-        except Exception as e:
-            raise RuntimeWarning(print_generic_exception(method_name, e))
-        
-        return insert_id
-        
-    def get_item(self, query:any):
-        
-        collection = get_collection(collection_name)
-        
+
+    def insert_item(self, collection_name: str, item: Union[Dict, List[Dict]]) -> any:
+
+        collection = self.get_collection(collection_name)
+
+        if isinstance(item, list):
+
+            try:
+                collection.insert_many(item)
+            except Exception as e:
+                raise RuntimeError(
+                    f"Some error occurred while adding multiple items at once: {e}"
+                )
+
+        else:
+            try:
+                insert_id = collection.insert_one(item).inserted_id
+            except Exception as e:
+                raise RuntimeError(f"Some error occurred in insert_item: {e}")
+
+            return insert_id
+
+    def get_item(self, query: any = None):
+
+        collection = self.get_collection(self.collection_name)
+
         try:
             item = collection.find_one(query)
         except Exception as e:
-            raise RuntimeWarning(print_generic_exception(method_name, e))
-        
+            raise RuntimeError(f"Some error occurred in get_item: {e}")
+
         return item
         
         
