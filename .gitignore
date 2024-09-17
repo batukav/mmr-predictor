@@ -166,6 +166,8 @@ cython_debug/
 
 # api data dumps
 resources/data/
+resources/db_data
+data/
 
 # Project dev
 test.py
