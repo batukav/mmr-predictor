@@ -168,4 +168,11 @@ cython_debug/
 resources/data/
 
 # mongodb persistence
-resources/db_data/
+resources/db_data
+data/
+
+# Project dev
+test.py
+test.ipynb
+dev.py
+dev.ipynb

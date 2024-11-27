@@ -136,7 +136,7 @@ def clean_match_data(match_dict: dict) -> dict:
 def get_url(url: str) -> dict:
     
     response = requests.get(url)
-    assert response.status_code == 200, f'Failed to retrive data: {response.status_code}'
+    assert response.status_code == 200, f'Failed to retrieve data: {response.status_code}'
     data = response.json()
   
     return data
@@ -192,4 +192,4 @@ def make_request_with_retries(url: str, max_retries: int=6) -> requests.Response
             return response
 
     # If max retries reached
-    raise Exception(f"Max retries reached. Could not complete the request. Last status code: {response.status_code}")
+    raise ConnectionError(f"Max retries reached. Could not complete the request. Last status code: {response.status_code}")
