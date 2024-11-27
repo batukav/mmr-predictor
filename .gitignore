@@ -166,6 +166,8 @@ cython_debug/
 
 # api data dumps
 resources/data/
+
+# mongodb persistence
 resources/db_data
 data/
 
