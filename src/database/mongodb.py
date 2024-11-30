@@ -1,6 +1,8 @@
 import pymongo
 from database import database
 from pymongo import MongoClient
+from pymongo.database import Database
+from pymongo.collection import Collection
 from typing import Dict, Any, TypedDict, List, Union
 
 JsonObject = Dict[str, Any]
@@ -8,7 +10,13 @@ JsonObject = Dict[str, Any]
 
 class MongoDB(database):
 
-    def __init__(self, host="localhost", port=27017, username=None, password=None):
+    def __init__(
+        self,
+        host: str = "localhost",
+        port: int = 27017,
+        username: str = None,
+        password: str = None,
+    ):
 
         self.host = host
         self.port = port
@@ -31,7 +39,7 @@ class MongoDB(database):
 
         return client
 
-    def get_database(self, database_name: str = None):
+    def get_database(self, database_name: str = None) -> Database:
 
         try:
             db = self.client[database_name]
@@ -41,7 +49,7 @@ class MongoDB(database):
 
         return db
 
-    def get_collection(self, collection_name: str = None) -> TypedDict:
+    def get_collection(self, collection_name: str = None) -> Collection:
 
         try:
             collection = self.db[collection_name]

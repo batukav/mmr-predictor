@@ -47,15 +47,15 @@ def add_games_from_directory(game_db: mongodb.MongoDB, directory: str, batch) ->
 
 
 def create_game_db(
-    host="localhost",
-    port=27017,
-    username="root",
-    password="example",
-    database_name="mmr_predictor",
-    collection_name="dota_game_collection",
-    path=None,
-    batch=True,
-):
+    host: str = "localhost",
+    port: int = 27017,
+    username: str = "root",
+    password: str = "example",
+    database_name: str = "mmr_predictor",
+    collection_name: str = "dota_game_collection",
+    path: str = None,
+    batch: bool = True,
+) -> None:
 
     # we are keeping all the game data in directories
 
