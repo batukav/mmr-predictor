@@ -9,6 +9,7 @@ import game_data_collector.parse_game_data_utils as pgdu
 
 logger = logging.getLogger(__name__)
 
+# Implementing roles as enum set
 class Role(Enum):
     ANY = 0
     CARRY = 1 # name = value
@@ -19,6 +20,7 @@ class Role(Enum):
     NUKER = 6
     PUSHER = 7
     SUPPORT = 8
+    CANONICAL_CARRY = 9
     
 # Experimental getter function combines several preprocessing steps
 
@@ -66,7 +68,12 @@ def get_kpis_by_role(col: pymongo.collection, role: Role, rank_nin: list = [None
 
 def get_hero_ids_of_role(role: Role) -> list[int]:
     # prepare sql
-    if not role == Role.ANY:
+    if role == Role.CANONICAL_CARRY:      
+        # special case canonical carry
+        canonical_carries = ['Anti-Mage','Juggernaut','Drow Ranger','Phantom Assassin', 'Bloodseeker', 'Phantom Lancer', 'Sven', 'Faceless Void', 'Templar Assassin','Luna','Lifestealer', 'Clinkz', 'Huskar','Broodmother','Spectre', 'Gyrocopter','Lycan','Lone Druid','Chaos Knight','Medusa','Terrorblade']     
+        canonical_carries = [f"'{c}'" for c in canonical_carries] # need extra quotes for sql
+        sql: str = f"SELECT id from heroes WHERE localized_name IN ({', '.join(canonical_carries)}) ORDER BY heroes.id ASC;"
+    elif not (role == Role.ANY):
         sql: str = f"SELECT id from heroes WHERE LOWER('{role.name}') = ANY(ARRAY(SELECT LOWER(role) FROM unnest(roles) AS role)) ORDER BY heroes.id ASC;"
     else:
         sql: str = f"SELECT id from heroes ORDER BY heroes.id ASC;"
