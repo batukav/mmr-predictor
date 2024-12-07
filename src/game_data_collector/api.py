@@ -21,9 +21,52 @@ class Role(Enum):
     PUSHER = 7
     SUPPORT = 8
     CANONICAL_CARRY = 9
-    
-# Experimental getter function combines several preprocessing steps
 
+
+def get_kpis_by_heros_list(col: pymongo.collection, ids : list, rank_nin: list = [None, 80]) -> pd.DataFrame:
+    
+    df = pd.DataFrame()
+    for id in ids:
+        _df = get_kpis_by_hero_id(col, id, rank_nin)
+        if _df is not None:
+            df = pd.concat([df,_df], axis = 0, ignore_index = True)
+        
+    return df
+    
+    
+def get_kpis_by_hero_id(col: pymongo.collection, hero_id : int, rank_nin: list = [None, 80]) -> pd.DataFrame:
+
+    # Aggregation pipeline
+    pipeline = [
+        {"$unwind": "$players"},
+        {"$match": {"players.hero_id": hero_id}},
+        {"$group": {
+            "_id": None, 
+            "rank_tier": {"$push": {"$ifNull": ["$players.rank_tier", 0]}}, 
+            "hero_id": {"$push": "$players.hero_id"},
+            "kda": {"$push": "$players.kda"},
+            "last_hits": {"$push": "$players.last_hits"},
+            "actions_per_min": {"$push": "$players.actions_per_min"},
+            "gold_per_min": {"$push": "$players.benchmarks.gold_per_min.raw"},
+            "xp_per_min": {"$push": "$players.benchmarks.xp_per_min.raw"}}},
+        {"$project": {"_id": 0, "rank_tier": 1, "hero_id": 1, "kda": 1, "last_hits": 1, "actions_per_min": 1, "gold_per_min": 1, "xp_per_min": 1}},   # Exclude the _id from the result
+    ]
+    
+    if rank_nin:
+        pipeline.insert(1, {"$match": {"players.rank_tier": {"$nin": rank_nin}}})
+        
+
+    # Execute the aggregation pipeline
+    result = list(col.aggregate(pipeline))
+
+    # not all heroes are yet present in our game database
+    if len(result) > 0:
+        df = pd.DataFrame.from_dict(result[0])
+        return df
+    else:
+        return None
+    
+    
 def get_kpis_by_role(col: pymongo.collection, role: Role, rank_nin: list = [None, 80]) -> pd.DataFrame:
 
     # Aggregation pipeline
