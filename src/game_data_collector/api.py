@@ -4,6 +4,7 @@ import requests
 import json
 import logging
 import pandas as pd
+import pprint
 
 import game_data_collector.parse_game_data_utils as pgdu
 
@@ -53,7 +54,7 @@ def get_kpis_by_hero_id(col: pymongo.collection, hero_id : int, rank_nin: list =
     ]
     
     if rank_nin:
-        pipeline.insert(1, {"$match": {"players.rank_tier": {"$nin": rank_nin}}})
+        pipeline.insert(2, {"$match": {"players.rank_tier": {"$nin": rank_nin}}})
         
 
     # Execute the aggregation pipeline
@@ -66,7 +67,8 @@ def get_kpis_by_hero_id(col: pymongo.collection, hero_id : int, rank_nin: list =
     else:
         return None
     
-    
+
+ # TODO this method sometimes behaves unpredictably when you change the rank filter !?    
 def get_kpis_by_role(col: pymongo.collection, role: Role, rank_nin: list = [None, 80]) -> pd.DataFrame:
 
     # Aggregation pipeline
@@ -91,13 +93,18 @@ def get_kpis_by_role(col: pymongo.collection, role: Role, rank_nin: list = [None
         role_ids: list[int] = get_hero_ids_of_role(role)
         pipeline.insert(2, {"$match": { "players.hero_id": { "$in": role_ids }}})
 
+    # pprint.pprint(pipeline)
     # Execute the aggregation pipeline
     result = list(col.aggregate(pipeline))
 
-    if not len(result) == 1:
+    if not result:
+        raise Exception("Got nothing from mongo db")
+    
+    if len(result) > 1:
         print(result)
         raise Exception("More than one results returned")
-
+    
+    print(f"collected {len(result[0]["rank_tier"])} rows")
     df = pd.DataFrame.from_dict(result[0])
 
     if role != Role.ANY:
