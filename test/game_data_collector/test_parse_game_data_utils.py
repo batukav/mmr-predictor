@@ -7,7 +7,7 @@ import requests
 # Add the src directory to the sys.path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../src')))
 
-from game_data_collector.parse_game_data_utils import make_request_with_retries
+from game_data_collector import make_request_with_retries
 
 
 def test_make_request_with_retries_ok(mocker):
