@@ -165,11 +165,10 @@ cython_debug/
 .vscode/
 
 # api data dumps
-resources/data/
+resources/data/*.json
 
 # mongodb persistence
 resources/db_data
-data/
 
 # Project dev
 test.py
@@ -177,4 +176,3 @@ test.ipynb
 dev.py
 dev.ipynb
 playerdata.csv
-data/
