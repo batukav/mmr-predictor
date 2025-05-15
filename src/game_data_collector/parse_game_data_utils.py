@@ -70,47 +70,23 @@ def clean_match_data(match_dict: dict) -> dict:
         - If a key is removed, a message is printed indicating which key was removed.
 
     Removed Keys:
-        'version', 'draft_timings', 'teamfights', 'objectives', 'chat', 'radiant_gold_adv',
-        'radiant_xp_adv', 'cosmetics', 'leagueid', 'start_time', 'series_id', 'series_type',
-        'cluster', 'replay_salt', 'pre_game_duration', 'match_seq_num', 'tower_status_radiant',
-        'tower_status_dire', 'barracks_status_radiant', 'barracks_status_dire', 'first_blood_time',
-        'human_players', 'game_mode', 'region', 'throw', 'loss', 'all_word_counts', 'my_word_counts',
-        'flags', 'patch', 'engine', 'picks_bans', 'od_data'
+        'draft_timings', 'teamfights', 'chat', 'leagueid', 'series_id', 'series_type',
+        'replay_salt', 'pre_game_duration', 'match_seq_num', 'human_players', 'region', 'loss', 'engine'
     """
     keys_to_be_removed = [
-        "version",
         "draft_timings",
         "teamfights",
-        "objectives",
         "chat",
-        "radiant_gold_adv",
-        "radiant_xp_adv",
-        "cosmetics",
         "leagueid",
-        "start_time",
         "series_id",
         "series_type",
-        "cluster",
         "replay_salt",
         "pre_game_duration",
         "match_seq_num",
-        "tower_status_radiant",
-        "tower_status_dire",
-        "barracks_status_radiant",
-        "barracks_status_dire",
-        "first_blood_time",
         "human_players",
-        "game_mode",
         "region",
-        "throw",
         "loss",
-        "all_word_counts",
-        "my_word_counts",
-        "flags",
-        "patch",
         "engine",
-        "picks_bans",
-        "od_data",
     ]
 
     # match_dict = {key: value for key, value in match_dict.items() if key not in keys_to_be_removed}
